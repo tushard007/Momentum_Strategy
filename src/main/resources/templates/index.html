@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>CSV Data</title>
+</head>
+<body>
+<h2>CSV Data</h2>
+<table border="1">
+    <tr th:each="row : ${csvData}">
+        <td th:each="cell : ${row}" th:text="${cell}"></td>
+    </tr>
+</table>
+</body>
+</html>
