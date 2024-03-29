@@ -39,13 +39,12 @@ public class StockService {
 
     public int CSVStockUpload() throws IOException, CsvException {
         File file = ResourceUtils.getFile("classpath:DataUpload/bhavCopy.csv");
-        System.out.println("CSVStockUpload file path:"+file.getPath());
+
         List<Stock> stockList=new ArrayList<>();
         Stock stock=null;
         List<String[]> csvData = csvReaderService.readCsvFile(file.getPath());
         for (String[] stringArray : csvData) {
             stock=new Stock();
-            System.out.println("Company name:"+stringArray[3]);
 
             stock.setNseSymbol(stringArray[1]);
             stock.setSeries(stringArray[2]);
