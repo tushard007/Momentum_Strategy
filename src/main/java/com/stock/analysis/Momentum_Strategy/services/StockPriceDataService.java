@@ -38,8 +38,7 @@ public class StockPriceDataService {
     public void deleteStockPriceData(int id) {
         repository.deleteById(id);
     }
-    public void getAllStockPriceReturnForYear() {
-      //  List<StockPriceData> stockPrice=repository.findAll();
+    public List<StockMomentum> getAllStockPriceReturnForYear() {
         LocalDate endDate= LocalDate.parse("2024-03-01");
         LocalDate startDate= DateUtils.getDateBeforeYear(endDate,1);
         List<Date> startEndDate=Arrays.asList(Date.valueOf(startDate),Date.valueOf(endDate));
@@ -83,5 +82,7 @@ public class StockPriceDataService {
 
                 highestReturnSMList.stream()
                 .forEach(stockMomentum -> System.out.println("Stock Name:"+stockMomentum.getStockName()+" return:"+stockMomentum.getPercentageReturn()+"%"));
+         return highestReturnSMList;
     }
+
 }
