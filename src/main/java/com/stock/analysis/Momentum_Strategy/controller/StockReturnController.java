@@ -1,7 +1,6 @@
 package com.stock.analysis.Momentum_Strategy.controller;
 
 import com.stock.analysis.Momentum_Strategy.model.StockMomentum;
-import com.stock.analysis.Momentum_Strategy.model.StockPriceData;
 import com.stock.analysis.Momentum_Strategy.model.StockReturn;
 import com.stock.analysis.Momentum_Strategy.services.StockReturnService;
 import lombok.extern.slf4j.Slf4j;

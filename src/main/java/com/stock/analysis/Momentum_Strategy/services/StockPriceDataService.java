@@ -1,18 +1,13 @@
 package com.stock.analysis.Momentum_Strategy.services;
 
-import com.stock.analysis.Momentum_Strategy.Util.DateUtils;
-import com.stock.analysis.Momentum_Strategy.Util.ReturnCalculationUtils;
 import com.stock.analysis.Momentum_Strategy.dao.StockPriceDataRepository;
-import com.stock.analysis.Momentum_Strategy.model.StockMomentum;
 import com.stock.analysis.Momentum_Strategy.model.StockPriceData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Optional;
 
 
 @Service
