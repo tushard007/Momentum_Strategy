@@ -52,8 +52,4 @@ public class StockPriceDataController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/StockReturn1Year")
-    public void getAllStockPriceReturnForYear() {
-         service.getAllStockPriceReturnForYear();
-    }
 }

@@ -9,10 +9,7 @@ import java.sql.Date;
 @Setter
 public class StockMomentum {
     private String stockName;
-    private Date startDate;
-    private float startDatePrice;
     private Date endDate;
-    private float endDatePrice;
-    private String timePeriod;
-    private float percentageReturn;
+    private int totalRank;
+    private String strategyName;
 }
