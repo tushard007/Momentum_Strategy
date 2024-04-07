@@ -1,7 +1,5 @@
 package com.stock.analysis.Momentum_Strategy.services;
 
-import com.stock.analysis.Momentum_Strategy.Util.DateUtils;
-import com.stock.analysis.Momentum_Strategy.model.StockMomentum;
 import com.stock.analysis.Momentum_Strategy.model.StockPriceData;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
