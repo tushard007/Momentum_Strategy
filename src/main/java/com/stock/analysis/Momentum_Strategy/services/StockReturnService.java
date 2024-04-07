@@ -55,10 +55,17 @@ public class StockReturnService {
     public void deleteStockReturn(int id) {
         stockReturnRepository.deleteById(id);
     }
-    public List<StockReturn> getMonthlyStockReturn(Date stockEndDate,int month){
 
+    public List<StockReturn> getMonthlyStockReturn(Date stockEndDate,int month){
+        log.trace("Inside StockReturnService::getMonthlyStockReturn");
         LocalDate endDate= stockEndDate.toLocalDate();
+
         LocalDate startDate= DateUtils.getDateBeforeMonth(endDate,month);
+        log.info("First start date initially:"+startDate);
+       int count=  StockDataRepository.countByPriceDate(Date.valueOf(startDate));
+       if(count==0)
+            startDate= getDateCount(startDate,count);
+        log.info("After calculation startDate:"+startDate+" endDate:"+endDate);
         List<Date> startEndDate= Arrays.asList(Date.valueOf(startDate),Date.valueOf(endDate));
         List<StockPriceData> stockPriceListByStartDate=StockDataRepository.findByPriceDate(startEndDate);
         log.info("all start end date size:"+stockPriceListByStartDate.size());
@@ -104,5 +111,14 @@ public class StockReturnService {
 
          stockReturnRepository.saveAll(finalHighestReturnSMList);
         return finalHighestReturnSMList;
+    }
+
+    public LocalDate getDateCount(LocalDate startDate,int count){
+       if (count>0)return startDate;
+       if(count==0) {
+            startDate= startDate.plusDays(1);
+            count=  StockDataRepository.countByPriceDate(Date.valueOf(startDate));
+        }
+        return getDateCount(startDate,count);
     }
 }

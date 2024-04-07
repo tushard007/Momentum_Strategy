@@ -2,6 +2,7 @@ package com.stock.analysis.Momentum_Strategy.services;
 
 import com.stock.analysis.Momentum_Strategy.Util.DateUtils;
 import com.stock.analysis.Momentum_Strategy.model.StockMomentum;
+import com.stock.analysis.Momentum_Strategy.model.StockPriceData;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -10,9 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 @Service
@@ -20,7 +23,7 @@ public class ExcelService {
     @Autowired
     StockPriceDataService stockPriceDataService;
     public ResponseEntity<String> getExcel1YearReturn(Workbook workbook) throws IOException {
-        List<StockMomentum> smList = stockPriceDataService.getAllStockPriceReturnForYear();
+        List<StockPriceData> smList = stockPriceDataService.getAllStockPriceData();
         Sheet sheet = workbook.createSheet("1 Year return");
 
 
@@ -35,15 +38,10 @@ public class ExcelService {
 
         // Add data rows
         int rowNum = 1;
-        for (StockMomentum sm : smList) {
+        for (StockPriceData sm : smList) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(sm.getStockName());
-            row.createCell(1).setCellValue(sm.getPercentageReturn());
-            row.createCell(2).setCellValue(DateUtils.formatDate(sm.getStartDate().toLocalDate())) ;
-            row.createCell(3).setCellValue(sm.getStartDatePrice());
-            row.createCell(4).setCellValue(DateUtils.formatDate(sm.getEndDate().toLocalDate()));
-            row.createCell(5).setCellValue(sm.getEndDatePrice());
-            row.createCell(6).setCellValue(sm.getTimePeriod());
+
 
         }
 

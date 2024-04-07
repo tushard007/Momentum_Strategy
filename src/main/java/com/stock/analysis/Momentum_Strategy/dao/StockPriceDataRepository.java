@@ -15,4 +15,5 @@ public interface StockPriceDataRepository extends JpaRepository<StockPriceData, 
 
     @Query(value = "select * from stock_price_data where price_date in :SEDate", nativeQuery = true)
     List<StockPriceData> findByPriceDate(@Param("SEDate") List<Date> startEndDate);
+     int countByPriceDate(@Param("endStockDate")Date endDate);
 }
