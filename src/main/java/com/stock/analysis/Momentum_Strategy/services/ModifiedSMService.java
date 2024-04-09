@@ -1,31 +1,102 @@
 package com.stock.analysis.Momentum_Strategy.services;
 
 import com.stock.analysis.Momentum_Strategy.dao.ModifiedSMRepository;
+import com.stock.analysis.Momentum_Strategy.dao.StockReturnRepository;
 import com.stock.analysis.Momentum_Strategy.model.ModifiedStockMomentum;
+import com.stock.analysis.Momentum_Strategy.model.StockReturn;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
+
+import java.sql.Date;
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 @Service
+@Slf4j
 public class ModifiedSMService {
 
     @Autowired
-    private ModifiedSMRepository repository;
+    private ModifiedSMRepository modifiedSMRepository;
+    @Autowired
+    private StockReturnRepository returnRepository;
 
     public List<ModifiedStockMomentum> getAllStocks() {
-        return repository.findAll();
+        return modifiedSMRepository.findAll();
     }
 
     public Optional<ModifiedStockMomentum> getStockById(int id) {
-        return repository.findById(id);
+        return modifiedSMRepository.findById(id);
     }
 
     public ModifiedStockMomentum saveOrUpdateStock(ModifiedStockMomentum stock) {
-        return repository.save(stock);
+        return modifiedSMRepository.save(stock);
     }
 
     public void deleteStock(int id) {
-        repository.deleteById(id);
+        modifiedSMRepository.deleteById(id);
+    }
+
+    public void getSMTotalRanking(Date endDate){
+        List<StockReturn> stockReturnList= returnRepository.findByByEndDate(endDate);
+        log.info("Total size list:"+stockReturnList.size()+" for End Date:"+endDate);
+
+        Map<String, List<StockReturn>> StockreturnByNameMap = stockReturnList.stream()
+                .collect(Collectors.groupingBy(StockReturn::getStockName));
+        List<ModifiedStockMomentum> smList=new ArrayList<>();
+        for (Map.Entry<String, List<StockReturn>> entry : StockreturnByNameMap.entrySet()) {
+            ModifiedStockMomentum modifiedStockMomentum = getModifiedStockMomentum(entry);
+            if(modifiedStockMomentum.isAvailableThreeMonth() && modifiedStockMomentum.isAvailableSixMonth() && modifiedStockMomentum.isAvailableNineMonth() && modifiedStockMomentum.isAvailableTwelveMonth()) {
+                smList.add(modifiedStockMomentum);
+                log.info("Stock Ticker:"+modifiedStockMomentum.getStockName()+" Total Rank:"+modifiedStockMomentum.getTotalRank()+" end Date:"+modifiedStockMomentum.getEndDate());
+            }
+        }
+
+
+        List<ModifiedStockMomentum> highestRank=new ArrayList<>();
+        highestRank=smList
+                .stream()
+                .sorted(Comparator.comparing(ModifiedStockMomentum::getTotalRank))
+                .limit(20)
+                .toList();
+        highestRank.forEach(stockMomentum -> System.out.println(stockMomentum.getStockName() + " - " + stockMomentum.getTotalRank()));
+        modifiedSMRepository.saveAll(highestRank);
+    }
+
+    private static ModifiedStockMomentum getModifiedStockMomentum(Map.Entry<String, List<StockReturn>> entry) {
+        ModifiedStockMomentum sm=new ModifiedStockMomentum();
+        sm.setStockName(entry.getKey());
+
+        int calculateTotalRank=0;
+        for (StockReturn sr : entry.getValue()) {
+            if(sr.getMonthTimePeriod()==3) {
+                sm.setAvailableThreeMonth(true);
+                calculateTotalRank += sr.getRank();
+                sm.setThreeMonthRank(sr.getRank());
+                sm.setThreeMonthReturn(sr.getPercentageReturn());
+            }
+            if(sr.getMonthTimePeriod()==6) {
+                sm.setAvailableSixMonth(true);
+                calculateTotalRank += sr.getRank();
+                sm.setSixMonthRank(sr.getRank());
+                sm.setSixMonthReturn(sr.getPercentageReturn());
+            }
+            if(sr.getMonthTimePeriod()==9) {
+                sm.setAvailableNineMonth(true);
+                calculateTotalRank += sr.getRank();
+                sm.setNineMonthRank(sr.getRank());
+                sm.setNineMonthReturn(sr.getPercentageReturn());
+            }
+            if(sr.getMonthTimePeriod()==12) {
+                sm.setAvailableTwelveMonth(true);
+                calculateTotalRank += sr.getRank();
+                sm.setTwelveMonthRank(sr.getRank());
+                sm.setTwelveMonthReturn(sr.getPercentageReturn());
+            }
+            sm.setEndDate(sr.getEndDate());
+        }
+        sm.setTotalRank(calculateTotalRank);
+        return sm;
     }
 }

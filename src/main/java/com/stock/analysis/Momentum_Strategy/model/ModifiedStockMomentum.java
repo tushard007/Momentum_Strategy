@@ -17,8 +17,20 @@ public class ModifiedStockMomentum {
     private String stockName;
     private Date endDate;
     private int totalRank;
+    @Transient
     private boolean availableThreeMonth;
+    @Transient
     private boolean availableSixMonth;
+    @Transient
     private boolean availableNineMonth;
+    @Transient
     private boolean availableTwelveMonth;
+    private float threeMonthReturn;
+    private float sixMonthReturn;
+    private float nineMonthReturn;
+    private float twelveMonthReturn;
+    private int threeMonthRank;
+    private int sixMonthRank;
+    private int nineMonthRank;
+    private int twelveMonthRank;
 }
