@@ -45,7 +45,7 @@ public class StockReturnController {
 
     @PostMapping("/{endDate}/{month}")
     public ResponseEntity<List<StockReturn>> getStockReturn(@PathVariable Date endDate, @PathVariable int month){
-    List<StockReturn> returnWiseList=stockReturnService.getMonthlyStockReturn(endDate,month);
+    List<StockReturn> returnWiseList=stockReturnService.getBeforeMonthlyStockReturn(endDate,month);
         return new ResponseEntity<>(returnWiseList, HttpStatus.OK);
     }
 }

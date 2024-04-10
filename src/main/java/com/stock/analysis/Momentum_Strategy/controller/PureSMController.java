@@ -3,8 +3,10 @@ package com.stock.analysis.Momentum_Strategy.controller;
 import com.stock.analysis.Momentum_Strategy.model.PureStockMomentum;
 import com.stock.analysis.Momentum_Strategy.services.PureSMService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,12 +34,18 @@ public class PureSMController {
 
     @PutMapping("/{id}")
     public PureStockMomentum updateStock(@PathVariable int id, @RequestBody PureStockMomentum updatedStock) {
-        updatedStock.setId(id); // Ensure the correct ID is set for update
+        updatedStock.setId(id);
         return pureSMService.saveOrUpdateStock(updatedStock);
     }
 
     @DeleteMapping("/{id}")
     public void deleteStock(@PathVariable int id) {
         pureSMService.deleteStock(id);
+    }
+
+    @PostMapping("/{endDate}/{timePeriod}")
+    public ResponseEntity<Void> getTopPureMomentumStocks(@PathVariable Date endDate,@PathVariable int timePeriod) {
+        pureSMService.getTopPureMomentumStocks(endDate,timePeriod);
+        return ResponseEntity.noContent().build();
     }
 }

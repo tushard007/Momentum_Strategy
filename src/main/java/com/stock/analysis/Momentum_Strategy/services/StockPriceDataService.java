@@ -1,6 +1,6 @@
 package com.stock.analysis.Momentum_Strategy.services;
 
-import com.stock.analysis.Momentum_Strategy.dao.StockPriceDataRepository;
+import com.stock.analysis.Momentum_Strategy.repository.StockPriceDataRepository;
 import com.stock.analysis.Momentum_Strategy.model.StockPriceData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

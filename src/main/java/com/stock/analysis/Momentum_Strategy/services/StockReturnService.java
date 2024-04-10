@@ -2,8 +2,9 @@ package com.stock.analysis.Momentum_Strategy.services;
 
 import com.stock.analysis.Momentum_Strategy.Util.DateUtils;
 import com.stock.analysis.Momentum_Strategy.Util.ReturnCalculationUtils;
-import com.stock.analysis.Momentum_Strategy.dao.StockPriceDataRepository;
-import com.stock.analysis.Momentum_Strategy.dao.StockReturnRepository;
+import com.stock.analysis.Momentum_Strategy.model.RawPortfolioStockData;
+import com.stock.analysis.Momentum_Strategy.repository.StockPriceDataRepository;
+import com.stock.analysis.Momentum_Strategy.repository.StockReturnRepository;
 import com.stock.analysis.Momentum_Strategy.model.StockPriceData;
 import com.stock.analysis.Momentum_Strategy.model.StockReturn;
 import lombok.extern.slf4j.Slf4j;
@@ -56,47 +57,49 @@ public class StockReturnService {
         stockReturnRepository.deleteById(id);
     }
 
-    public List<StockReturn> getMonthlyStockReturn(Date stockEndDate,int month){
-        log.trace("Inside StockReturnService::getMonthlyStockReturn");
+    public List<StockReturn> getBeforeMonthlyStockReturn(Date stockEndDate, int month){
+        log.trace("Inside StockReturnService::getBeforeMonthlyStockReturn");
         LocalDate endDate= stockEndDate.toLocalDate();
-
+        int cnt=  StockDataRepository.countByPriceDate(Date.valueOf(endDate));
+        if(cnt==0)
+            endDate= getStartDateCount(endDate,cnt);
         LocalDate startDate= DateUtils.getDateBeforeMonth(endDate,month);
         log.info("First start date initially:"+startDate);
        int count=  StockDataRepository.countByPriceDate(Date.valueOf(startDate));
        if(count==0)
-            startDate= getDateCount(startDate,count);
+            startDate= getStartDateCount(startDate,count);
         log.info("After calculation startDate:"+startDate+" endDate:"+endDate);
         List<Date> startEndDate= Arrays.asList(Date.valueOf(startDate),Date.valueOf(endDate));
         List<StockPriceData> stockPriceListByStartDate=StockDataRepository.findByPriceDate(startEndDate);
         log.info("all start end date size:"+stockPriceListByStartDate.size());
 
-        // Group the StockPriceData by Date
+        // Group the StockPriceData by Stock Name
         Map<String, List<StockPriceData>> StockPriceDataByName = stockPriceListByStartDate.stream()
                 .collect(Collectors.groupingBy(StockPriceData::getStockName));
 
         List<StockReturn> objStockMomentumList=new ArrayList<>();
         // Print the results
         for (String stockName : StockPriceDataByName.keySet()) {
-            StockReturn stockMomentum=new StockReturn();
-            stockMomentum.setStockName(stockName);
+            StockReturn stockReturn=new StockReturn();
+            stockReturn.setStockName(stockName);
             for (StockPriceData sPData : StockPriceDataByName.get(stockName)) {
                 if(sPData.getPriceDate().equals(Date.valueOf(startDate))){
                     log.debug("\n=====Stock name:"+sPData.getStockName()+"\n Start date"+sPData.getPriceDate()+"\n start date stock Price:"+sPData.getPrice());
-                    stockMomentum.setStartDate(sPData.getPriceDate());
-                    stockMomentum.setStartDatePrice(sPData.getPrice());
+                    stockReturn.setStartDate(sPData.getPriceDate());
+                    stockReturn.setStartDatePrice(sPData.getPrice());
                 }
-                if(sPData.getPriceDate().equals(Date.valueOf(endDate))&&stockMomentum.getStockName().equals(sPData.getStockName())){
+                if(sPData.getPriceDate().equals(Date.valueOf(endDate))&&stockReturn.getStockName().equals(sPData.getStockName())){
                     log.debug("\n-----Stock name:"+sPData.getStockName()+"\n end date"+sPData.getPriceDate()+"\nend date stock Price:"+sPData.getPrice());
-                    stockMomentum.setEndDate(sPData.getPriceDate());
-                    stockMomentum.setEndDatePrice(sPData.getPrice());
+                    stockReturn.setEndDate(sPData.getPriceDate());
+                    stockReturn.setEndDatePrice(sPData.getPrice());
                 }
             }
-            if(stockMomentum.getStartDatePrice()>0 && stockMomentum.getEndDatePrice()>0) {
-                stockMomentum.setPercentageReturn(ReturnCalculationUtils.
-                        percentReturn(stockMomentum.getStartDatePrice(),stockMomentum.getEndDatePrice()));
-                log.debug("Stock Name:"+stockMomentum.getStockName()+" Stock Return:"+stockMomentum.getPercentageReturn()+"%");
-                stockMomentum.setMonthTimePeriod(month);
-                objStockMomentumList.add(stockMomentum);
+            if(stockReturn.getStartDatePrice()>0 && stockReturn.getEndDatePrice()>0) {
+                stockReturn.setPercentageReturn(ReturnCalculationUtils.
+                        percentReturn(stockReturn.getStartDatePrice(),stockReturn.getEndDatePrice()));
+                log.debug("Stock Name:"+stockReturn.getStockName()+" Stock Return:"+stockReturn.getPercentageReturn()+"%");
+                stockReturn.setMonthTimePeriod(month);
+                objStockMomentumList.add(stockReturn);
             }
         }
         List<StockReturn> highestReturnSMList=new ArrayList<>();
@@ -112,13 +115,60 @@ public class StockReturnService {
          stockReturnRepository.saveAll(finalHighestReturnSMList);
         return finalHighestReturnSMList;
     }
-
-    public LocalDate getDateCount(LocalDate startDate,int count){
+//days are plus if stock data price not found for starting month date
+    public LocalDate getStartDateCount(LocalDate startDate, int count){
        if (count>0)return startDate;
        if(count==0) {
             startDate= startDate.plusDays(1);
             count=  StockDataRepository.countByPriceDate(Date.valueOf(startDate));
         }
-        return getDateCount(startDate,count);
+        return getStartDateCount(startDate,count);
+    }
+    //days are minus if stock data price not found for ending month date
+    public LocalDate getEndDateCount(LocalDate endDate, int count){
+        if (count>0)return endDate;
+        if(count==0) {
+            endDate= endDate.minusDays(1);
+            count=  StockDataRepository.countByPriceDate(Date.valueOf(endDate));
+        }
+        return getStartDateCount(endDate,count);
+    }
+
+    public List<RawPortfolioStockData> getStockPriceStartEndMonthDate(int year,int monthValue,Set<String>stockNameSet){
+        LocalDate monthStartDate=DateUtils.getStartMonthDate(year,monthValue);
+
+        int count=  StockDataRepository.countByPriceDate(Date.valueOf(monthStartDate));
+        if(count==0)
+            monthStartDate= getStartDateCount(monthStartDate,count);
+
+        LocalDate monthEndDate=DateUtils.getEndMonthDate(year,monthValue);
+        int cnt=  StockDataRepository.countByPriceDate(Date.valueOf(monthEndDate));
+        if(cnt==0)
+            monthEndDate= getEndDateCount(monthEndDate,cnt);
+
+        List<Date> startEndDate= Arrays.asList(Date.valueOf(monthStartDate),Date.valueOf(monthEndDate));
+        List<StockPriceData> priceListByStartEndDate=StockDataRepository.findByPriceDate(startEndDate);
+
+        log.info("Start Date:"+DateUtils.formatDate(monthStartDate)+" End Date:"+DateUtils.formatDate(monthEndDate));
+        List<RawPortfolioStockData> rawPortfolioStockDataList=new ArrayList<>();
+        Map<String, List<StockPriceData>> stockPriceDataByNameMap = priceListByStartEndDate.stream()
+                .collect(Collectors.groupingBy(StockPriceData::getStockName));
+
+            for(String stockName:stockNameSet) {
+                RawPortfolioStockData rawPortfolioStock = new RawPortfolioStockData();
+                for (StockPriceData stockPriceData : stockPriceDataByNameMap.get(stockName)) {
+                    rawPortfolioStock.setStockName(stockName);
+                    if (stockPriceData.getPriceDate().equals(Date.valueOf(monthStartDate))) {
+                        rawPortfolioStock.setStartMonthDate(stockPriceData.getPriceDate());
+                        rawPortfolioStock.setStartDatePrice(stockPriceData.getPrice());
+                    }
+                    if (stockPriceData.getPriceDate().equals(Date.valueOf(monthEndDate))) {
+                        rawPortfolioStock.setEndMonthDate(stockPriceData.getPriceDate());
+                        rawPortfolioStock.setEndDatePrice(stockPriceData.getPrice());
+                    }
+                }
+                rawPortfolioStockDataList.add(rawPortfolioStock);
+            }
+        return rawPortfolioStockDataList;
     }
 }

@@ -1,7 +1,7 @@
 package com.stock.analysis.Momentum_Strategy.services;
 
-import com.stock.analysis.Momentum_Strategy.dao.ModifiedSMRepository;
-import com.stock.analysis.Momentum_Strategy.dao.StockReturnRepository;
+import com.stock.analysis.Momentum_Strategy.repository.ModifiedSMRepository;
+import com.stock.analysis.Momentum_Strategy.repository.StockReturnRepository;
 import com.stock.analysis.Momentum_Strategy.model.ModifiedStockMomentum;
 import com.stock.analysis.Momentum_Strategy.model.StockReturn;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +60,6 @@ public class ModifiedSMService {
                 .sorted(Comparator.comparing(ModifiedStockMomentum::getTotalRank))
                 .limit(20)
                 .toList();
-        highestRank.forEach(stockMomentum -> System.out.println(stockMomentum.getStockName() + " - " + stockMomentum.getTotalRank()));
         modifiedSMRepository.saveAll(highestRank);
     }
 
@@ -98,5 +97,9 @@ public class ModifiedSMService {
         }
         sm.setTotalRank(calculateTotalRank);
         return sm;
+    }
+    public  Set<String> getAllStockNameByDate(Date endDate){
+        Set<String> stockList=modifiedSMRepository.findStockNameByEndDate(endDate);
+        return stockList;
     }
 }

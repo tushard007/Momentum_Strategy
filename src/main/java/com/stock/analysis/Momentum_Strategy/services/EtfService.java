@@ -1,10 +1,8 @@
 package com.stock.analysis.Momentum_Strategy.services;
 
 import com.opencsv.exceptions.CsvException;
-import com.stock.analysis.Momentum_Strategy.dao.EtfRepository;
-import com.stock.analysis.Momentum_Strategy.dao.StockRepository;
+import com.stock.analysis.Momentum_Strategy.repository.EtfRepository;
 import com.stock.analysis.Momentum_Strategy.model.Etf;
-import com.stock.analysis.Momentum_Strategy.model.Stock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
