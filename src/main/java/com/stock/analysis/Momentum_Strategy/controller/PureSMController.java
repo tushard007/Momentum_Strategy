@@ -43,9 +43,9 @@ public class PureSMController {
         pureSMService.deleteStock(id);
     }
 
-    @PostMapping("/{endDate}/{timePeriod}")
-    public ResponseEntity<Void> getTopPureMomentumStocks(@PathVariable Date endDate,@PathVariable int timePeriod) {
-        pureSMService.getTopPureMomentumStocks(endDate,timePeriod);
+    @PostMapping("/{startYear}/{endYear}")
+    public ResponseEntity<Void> getTopPureMomentumStocks(@PathVariable int startYear,int endYear) {
+        pureSMService.getTopPureMomentumStocks(startYear,endYear);
         return ResponseEntity.noContent().build();
     }
 }

@@ -43,10 +43,10 @@ public class StockReturnController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/{endDate}/{month}")
-    public ResponseEntity<List<StockReturn>> getStockReturn(@PathVariable Date endDate, @PathVariable int month){
-    List<StockReturn> returnWiseList=stockReturnService.getBeforeMonthlyStockReturn(endDate,month);
-        return new ResponseEntity<>(returnWiseList, HttpStatus.OK);
+    @PostMapping("/{startYear}/{endYear}/{month}")
+    public ResponseEntity<Void> getStockReturn(@PathVariable int  startYear,@PathVariable int  endYear, @PathVariable int month){
+    stockReturnService.getBeforeMonthlyStockReturn(startYear,endYear,month);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
 

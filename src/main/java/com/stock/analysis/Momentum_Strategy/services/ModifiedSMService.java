@@ -39,7 +39,7 @@ public class ModifiedSMService {
     }
 
     public void getSMTotalRanking(Date endDate){
-        List<StockReturn> stockReturnList= returnRepository.findByByEndDate(endDate);
+        List<StockReturn> stockReturnList= returnRepository.findByEndDate(endDate);
         log.info("Total size list:"+stockReturnList.size()+" for End Date:"+endDate);
 
         Map<String, List<StockReturn>> StockreturnByNameMap = stockReturnList.stream()
@@ -99,7 +99,6 @@ public class ModifiedSMService {
         return sm;
     }
     public  Set<String> getAllStockNameByDate(Date endDate){
-        Set<String> stockList=modifiedSMRepository.findStockNameByEndDate(endDate);
-        return stockList;
+        return modifiedSMRepository.findStockNameByEndDate(endDate);
     }
 }

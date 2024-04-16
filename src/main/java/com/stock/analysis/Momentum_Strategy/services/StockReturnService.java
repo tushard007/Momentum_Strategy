@@ -57,63 +57,65 @@ public class StockReturnService {
         stockReturnRepository.deleteById(id);
     }
 
-    public List<StockReturn> getBeforeMonthlyStockReturn(Date stockEndDate, int month){
+    public void getBeforeMonthlyStockReturn(int startYear,int endYear, int month){
         log.trace("Inside StockReturnService::getBeforeMonthlyStockReturn");
-        LocalDate endDate= stockEndDate.toLocalDate();
-        int cnt=  StockDataRepository.countByPriceDate(Date.valueOf(endDate));
-        if(cnt==0)
-            endDate= getStartDateCount(endDate,cnt);
-        LocalDate startDate= DateUtils.getDateBeforeMonth(endDate,month);
-        log.info("First start date initially:"+startDate);
-       int count=  StockDataRepository.countByPriceDate(Date.valueOf(startDate));
-       if(count==0)
-            startDate= getStartDateCount(startDate,count);
-        log.info("After calculation startDate:"+startDate+" endDate:"+endDate);
-        List<Date> startEndDate= Arrays.asList(Date.valueOf(startDate),Date.valueOf(endDate));
-        List<StockPriceData> stockPriceListByStartDate=StockDataRepository.findByPriceDate(startEndDate);
-        log.info("all start end date size:"+stockPriceListByStartDate.size());
+        List<LocalDate> firstDateList=DateUtils.getFirstDateOfMonthBetweenYears(startYear,endYear);
+        for(LocalDate firstMontDate:firstDateList) {
+            LocalDate endDate = firstMontDate;
+            int cnt = StockDataRepository.countByPriceDate(Date.valueOf(endDate));
+            if (cnt == 0)
+                endDate = getStartDateCount(endDate, cnt);
+            LocalDate startDate = DateUtils.getDateBeforeMonth(endDate, month);
+            log.info("First start date initially:" + startDate);
+            int count = StockDataRepository.countByPriceDate(Date.valueOf(startDate));
+            if (count == 0)
+                startDate = getStartDateCount(startDate, count);
+            log.info("After calculation startDate:" + startDate + " endDate:" + endDate);
+            List<Date> startEndDate = Arrays.asList(Date.valueOf(startDate), Date.valueOf(endDate));
+            List<StockPriceData> stockPriceListByStartDate = StockDataRepository.findByPriceDate(startEndDate);
+            log.info("all start end date size:" + stockPriceListByStartDate.size());
 
-        // Group the StockPriceData by Stock Name
-        Map<String, List<StockPriceData>> StockPriceDataByName = stockPriceListByStartDate.stream()
-                .collect(Collectors.groupingBy(StockPriceData::getStockName));
+            // Group the StockPriceData by Stock Name
+            Map<String, List<StockPriceData>> StockPriceDataByName = stockPriceListByStartDate.stream()
+                    .collect(Collectors.groupingBy(StockPriceData::getStockName));
 
-        List<StockReturn> objStockMomentumList=new ArrayList<>();
-        // Print the results
-        for (String stockName : StockPriceDataByName.keySet()) {
-            StockReturn stockReturn=new StockReturn();
-            stockReturn.setStockName(stockName);
-            for (StockPriceData sPData : StockPriceDataByName.get(stockName)) {
-                if(sPData.getPriceDate().equals(Date.valueOf(startDate))){
-                    log.debug("\n=====Stock name:"+sPData.getStockName()+"\n Start date"+sPData.getPriceDate()+"\n start date stock Price:"+sPData.getPrice());
-                    stockReturn.setStartDate(sPData.getPriceDate());
-                    stockReturn.setStartDatePrice(sPData.getPrice());
+            List<StockReturn> objStockMomentumList = new ArrayList<>();
+            // Print the results
+            for (String stockName : StockPriceDataByName.keySet()) {
+                StockReturn stockReturn = new StockReturn();
+                stockReturn.setStockName(stockName);
+                for (StockPriceData sPData : StockPriceDataByName.get(stockName)) {
+                    if (sPData.getPriceDate().equals(Date.valueOf(startDate))) {
+                        log.info("\n=====Stock name:" + sPData.getStockName() + "\n Start date" + sPData.getPriceDate() + "\n start date stock Price:" + sPData.getPrice());
+                        stockReturn.setStartDate(sPData.getPriceDate());
+                        stockReturn.setStartDatePrice(sPData.getPrice());
+                    }
+                    if (sPData.getPriceDate().equals(Date.valueOf(endDate)) && stockReturn.getStockName().equals(sPData.getStockName())) {
+                        log.info("\n-----Stock name:" + sPData.getStockName() + "\n end date" + sPData.getPriceDate() + "\nend date stock Price:" + sPData.getPrice());
+                        stockReturn.setEndDate(sPData.getPriceDate());
+                        stockReturn.setEndDatePrice(sPData.getPrice());
+                    }
                 }
-                if(sPData.getPriceDate().equals(Date.valueOf(endDate))&&stockReturn.getStockName().equals(sPData.getStockName())){
-                    log.debug("\n-----Stock name:"+sPData.getStockName()+"\n end date"+sPData.getPriceDate()+"\nend date stock Price:"+sPData.getPrice());
-                    stockReturn.setEndDate(sPData.getPriceDate());
-                    stockReturn.setEndDatePrice(sPData.getPrice());
+                if (stockReturn.getStartDatePrice() > 0 && stockReturn.getEndDatePrice() > 0) {
+                    stockReturn.setPercentageReturn(ReturnCalculationUtils.
+                            percentReturn(stockReturn.getStartDatePrice(), stockReturn.getEndDatePrice()));
+                    log.info("Stock Name:" + stockReturn.getStockName() + " Stock Return:" + stockReturn.getPercentageReturn() + "%");
+                    stockReturn.setMonthTimePeriod(month);
+                    objStockMomentumList.add(stockReturn);
                 }
             }
-            if(stockReturn.getStartDatePrice()>0 && stockReturn.getEndDatePrice()>0) {
-                stockReturn.setPercentageReturn(ReturnCalculationUtils.
-                        percentReturn(stockReturn.getStartDatePrice(),stockReturn.getEndDatePrice()));
-                log.debug("Stock Name:"+stockReturn.getStockName()+" Stock Return:"+stockReturn.getPercentageReturn()+"%");
-                stockReturn.setMonthTimePeriod(month);
-                objStockMomentumList.add(stockReturn);
-            }
+            List<StockReturn> highestReturnSMList = new ArrayList<>();
+            highestReturnSMList = objStockMomentumList
+                    .stream()
+                    .sorted(Comparator.comparing(StockReturn::getPercentageReturn).reversed())
+                    .limit(250)
+                    .toList();
+            List<StockReturn> finalHighestReturnSMList = highestReturnSMList;
+            IntStream.range(0, highestReturnSMList.size())
+                    .forEach(i -> finalHighestReturnSMList.get(i).setRank(i + 1));
+
+            stockReturnRepository.saveAll(finalHighestReturnSMList);
         }
-        List<StockReturn> highestReturnSMList=new ArrayList<>();
-        highestReturnSMList=objStockMomentumList
-                .stream()
-                .sorted(Comparator.comparing(StockReturn::getPercentageReturn).reversed())
-                .toList();
-
-        List<StockReturn> finalHighestReturnSMList = highestReturnSMList;
-        IntStream.range(0, highestReturnSMList.size())
-                .forEach(i -> finalHighestReturnSMList.get(i).setRank(i + 1));
-
-         stockReturnRepository.saveAll(finalHighestReturnSMList);
-        return finalHighestReturnSMList;
     }
 //days are plus if stock data price not found for starting month date
     public LocalDate getStartDateCount(LocalDate startDate, int count){
