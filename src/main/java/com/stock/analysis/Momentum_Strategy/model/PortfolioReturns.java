@@ -24,6 +24,6 @@ public class PortfolioReturns {
     private float actualAmount;
     private float percentageReturn;
     private float flatAmountAllocated;
-
+    private float ProfitLoss;
 
 }

@@ -15,4 +15,7 @@ public interface StockReturnRepository extends JpaRepository<StockReturn, Intege
 
     @Query(value = "select * from stock_return where end_date = :stockDate and month_time_period=:timePeriod", nativeQuery = true)
     List<StockReturn> findByEndDateAndMonthTimePeriod(@Param("stockDate") Date endStockDate,@Param("timePeriod") int timePeriod);
+    int countByEndDate(@Param("endStockDate")Date endDate);
+
+
 }

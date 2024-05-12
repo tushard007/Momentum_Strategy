@@ -52,9 +52,9 @@ public class ModifiedSMController {
         modifiedSMService.deleteStock(id);
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/{endDate}")
-    public ResponseEntity<Void> getTotalRanking(@PathVariable Date endDate){
-        modifiedSMService.getSMTotalRanking(endDate);
+    @PostMapping("/{startYear}/{endYear}")
+    public ResponseEntity<Void> getTotalRanking(@PathVariable int startYear,@PathVariable int endYear){
+        modifiedSMService.getSMTotalRanking(startYear,endYear);
         return ResponseEntity.noContent().build();
     }
 

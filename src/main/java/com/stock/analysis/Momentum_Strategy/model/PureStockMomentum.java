@@ -5,8 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Date;
+
 @Entity
-@Table(name="pure_stock_momentum")
+@Table(name = "pure_stock_momentum")
 @Getter
 @Setter
 public class PureStockMomentum {

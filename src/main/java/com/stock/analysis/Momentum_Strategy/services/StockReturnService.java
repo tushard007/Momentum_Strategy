@@ -104,7 +104,7 @@ public class StockReturnService {
                     objStockMomentumList.add(stockReturn);
                 }
             }
-            List<StockReturn> highestReturnSMList = new ArrayList<>();
+            List<StockReturn> highestReturnSMList;
             highestReturnSMList = objStockMomentumList
                     .stream()
                     .sorted(Comparator.comparing(StockReturn::getPercentageReturn).reversed())
@@ -158,18 +158,22 @@ public class StockReturnService {
 
             for(String stockName:stockNameSet) {
                 RawPortfolioStockData rawPortfolioStock = new RawPortfolioStockData();
-                for (StockPriceData stockPriceData : stockPriceDataByNameMap.get(stockName)) {
-                    rawPortfolioStock.setStockName(stockName);
-                    if (stockPriceData.getPriceDate().equals(Date.valueOf(monthStartDate))) {
-                        rawPortfolioStock.setStartMonthDate(stockPriceData.getPriceDate());
-                        rawPortfolioStock.setStartDatePrice(stockPriceData.getPrice());
-                    }
-                    if (stockPriceData.getPriceDate().equals(Date.valueOf(monthEndDate))) {
-                        rawPortfolioStock.setEndMonthDate(stockPriceData.getPriceDate());
-                        rawPortfolioStock.setEndDatePrice(stockPriceData.getPrice());
+                if (stockName != null) {
+                    for (StockPriceData stockPriceData : stockPriceDataByNameMap.get(stockName)) {
+                        if(stockPriceData!=null){
+                        rawPortfolioStock.setStockName(stockName);
+                        if (stockPriceData.getPriceDate().equals(Date.valueOf(monthStartDate))) {
+                            rawPortfolioStock.setStartMonthDate(stockPriceData.getPriceDate());
+                            rawPortfolioStock.setStartDatePrice(stockPriceData.getPrice());
+                        }
+                        if (stockPriceData.getPriceDate().equals(Date.valueOf(monthEndDate))) {
+                            rawPortfolioStock.setEndMonthDate(stockPriceData.getPriceDate());
+                            rawPortfolioStock.setEndDatePrice(stockPriceData.getPrice());
+                        }
                     }
                 }
-                rawPortfolioStockDataList.add(rawPortfolioStock);
+                    rawPortfolioStockDataList.add(rawPortfolioStock);
+                }
             }
         return rawPortfolioStockDataList;
     }

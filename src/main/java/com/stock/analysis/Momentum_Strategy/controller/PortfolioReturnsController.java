@@ -17,9 +17,9 @@ public class PortfolioReturnsController {
     @Autowired
     private PortfolioReturnsService portfolioReturnsService;
 
-    @PostMapping("/{strategyName}/{startMonthDate}")
-    public void getPortfolioReturns(@PathVariable String strategyName, @PathVariable Date startMonthDate){
-        portfolioReturnsService.getMonthlyPortfolioReturns(strategyName,startMonthDate);
+    @PostMapping("/{strategyName}")
+    public void getPortfolioReturns(@PathVariable String strategyName){
+        portfolioReturnsService.getMonthlyPortfolioReturns(strategyName);
 
     }
 }

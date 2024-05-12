@@ -1,5 +1,6 @@
 package com.stock.analysis.Momentum_Strategy.services;
 
+import com.stock.analysis.Momentum_Strategy.Util.DateUtils;
 import com.stock.analysis.Momentum_Strategy.repository.ModifiedSMRepository;
 import com.stock.analysis.Momentum_Strategy.repository.StockReturnRepository;
 import com.stock.analysis.Momentum_Strategy.model.ModifiedStockMomentum;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,8 +40,16 @@ public class ModifiedSMService {
         modifiedSMRepository.deleteById(id);
     }
 
-    public void getSMTotalRanking(Date endDate){
-        List<StockReturn> stockReturnList= returnRepository.findByEndDate(endDate);
+    public void getSMTotalRanking(int startYear,int endYear){
+        List<LocalDate> firstMonthDateList = DateUtils.getFirstDateOfMonthBetweenYears(startYear, endYear);
+        for (LocalDate statMonthDate : firstMonthDateList) {
+            LocalDate endDate=statMonthDate;
+            int cnt=returnRepository.countByEndDate(Date.valueOf(endDate));
+            if(cnt==0){
+                endDate=getStartDateCount(endDate,cnt);
+            }
+
+        List<StockReturn> stockReturnList= returnRepository.findByEndDate(Date.valueOf(endDate));
         log.info("Total size list:"+stockReturnList.size()+" for End Date:"+endDate);
 
         Map<String, List<StockReturn>> StockreturnByNameMap = stockReturnList.stream()
@@ -61,6 +71,7 @@ public class ModifiedSMService {
                 .limit(20)
                 .toList();
         modifiedSMRepository.saveAll(highestRank);
+        }
     }
 
     private static ModifiedStockMomentum getModifiedStockMomentum(Map.Entry<String, List<StockReturn>> entry) {
@@ -100,5 +111,17 @@ public class ModifiedSMService {
     }
     public  Set<String> getAllStockNameByDate(Date endDate){
         return modifiedSMRepository.findStockNameByEndDate(endDate);
+    }
+    public LocalDate getStartDateCount(LocalDate startDate, int count){
+        if (count>0)return startDate;
+        if(count==0) {
+            startDate= startDate.plusDays(1);
+            count=  returnRepository.countByEndDate(Date.valueOf(startDate));
+        }
+        return getStartDateCount(startDate,count);
+    }
+
+    public List<Date> getAllDistinctDate() {
+        return modifiedSMRepository.findDistinctByEndDate();
     }
 }
